@@ -14,7 +14,8 @@ import org.http4s.dsl.Http4sDsl
 
 class TodoHttpRoutes[F[_]: Sync](todoService: TodoService[F]) extends Http4sDsl[F] {
 
-  implicit private val todoEntityDecoder: EntityDecoder[F, write.UnvalidatedTodo] = jsonOf[F, write.UnvalidatedTodo]
+  implicit private val todoEntityDecoder: EntityDecoder[F, write.UnvalidatedTodo]                    = jsonOf[F, write.UnvalidatedTodo]
+  implicit private val updateCompletedTodoEntityDecoder: EntityDecoder[F, write.UpdateCompletedTodo] = jsonOf[F, write.UpdateCompletedTodo]
 
   val routes: HttpRoutes[F] = HttpRoutes.of[F] {
 
@@ -35,6 +36,11 @@ class TodoHttpRoutes[F[_]: Sync](todoService: TodoService[F]) extends Http4sDsl[
             todo => createNewTodo(todo)
           )
       }
+
+    case req @ PATCH -> Root / LongVar(id) =>
+      req.decode[write.UpdateCompletedTodo] { updateCompletedTodo =>
+        updateCompleted(TodoId(id), updateCompletedTodo.completed)
+      }
   }
 
   private def findAll(userName: UserName) =
@@ -49,7 +55,14 @@ class TodoHttpRoutes[F[_]: Sync](todoService: TodoService[F]) extends Http4sDsl[
       response <- Ok(todo.asJson)
     } yield response
 
+  private def updateCompleted(id: TodoId, completed: Boolean) =
+    for {
+      result   <- todoService.updateCompleted(id, completed)
+      response <- result.fold(handleError, x => Ok())
+    } yield response
+
   private def handleError(error: ServiceError): F[Response[F]] = error match {
-    case UserNotFound(u) => NotFound(Seq(s"User not found ${u.value}").asJson)
+    case UserNotFound(v) => NotFound(Seq(s"User not found ${v.value}").asJson)
+    case TodoNotFound(v) => NotFound(Seq(s"Todo not found ${v.value}").asJson)
   }
 }

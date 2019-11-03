@@ -12,4 +12,6 @@ package object model {
 
   type Title = String Refined And[NonEmpty, MaxSize[W.`500`.T]]
   object Title extends RefinedTypeOps[Title, String]
+
+  final case class TodoId(value: Long) extends AnyVal
 }

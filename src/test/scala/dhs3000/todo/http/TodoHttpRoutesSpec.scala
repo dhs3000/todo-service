@@ -14,6 +14,7 @@ import org.scalatest.{FunSpec, MustMatchers}
 
 class TodoHttpRoutesSpec extends FunSpec with MustMatchers {
   // Todo test create new todo
+  // Todo test update completed flag
 
   describe("The TodoHttpRoutes provides routes to") {
 
@@ -22,8 +23,8 @@ class TodoHttpRoutesSpec extends FunSpec with MustMatchers {
       val request  = Request[IO](uri = Uri(path = s"/${username.value}"))
 
       it("returns the todos if some exists") {
-        val todo1   = read.Todo(42, Title("test-title-1"), None)
-        val todo2   = read.Todo(66, Title("test-title-2"), Some("test-description-2"))
+        val todo1   = read.Todo(TodoId(42), Title("test-title-1"), None, false)
+        val todo2   = read.Todo(TodoId(66), Title("test-title-2"), Some("test-description-2"), true)
         val service = new TestTodoService(Right(NonEmptyVector.of(todo1, todo2)))
 
         withResponse(service, request) { response =>
@@ -67,13 +68,15 @@ class TodoHttpRoutesSpec extends FunSpec with MustMatchers {
 
   private def httpRoutes(service: TodoService[IO]): HttpRoutes[IO] = new TodoHttpRoutes[IO](service).routes
 
+  implicit val todoIdDecoder: Decoder[TodoId] = Decoder.decodeLong.map(TodoId)
   implicit val readTodoDecoder: Decoder[read.Todo] =
-    Decoder.forProduct3("id", "title", "description")(read.Todo)
+    Decoder.forProduct4("id", "title", "description", "completed")(read.Todo)
 
   implicit val readTodoJsonDecoder: EntityDecoder[IO, Array[read.Todo]] = jsonOf[IO, Array[read.Todo]]
 
-  private class TestTodoService(todos: Either[ServiceError, NonEmptyVector[read.Todo]] = Left(UserNotFound(UserName("dummy"))))
+  private class TestTodoService(todos: Either[UserNotFound, NonEmptyVector[read.Todo]] = Left(UserNotFound(UserName("dummy"))))
       extends TodoService[IO] {
+
     var lastInsertedTodo: Option[write.Todo]    = None
     var lastRequestedUserName: Option[UserName] = None
 
@@ -81,7 +84,9 @@ class TodoHttpRoutesSpec extends FunSpec with MustMatchers {
       lastInsertedTodo = Some(todo)
     }
 
-    override def findAll(userName: UserName): IO[Either[ServiceError, NonEmptyVector[read.Todo]]] = IO {
+    override def updateCompleted(id: TodoId, completed: Boolean): IO[Either[TodoNotFound, Unit]] = ???
+
+    override def findAll(userName: UserName): IO[Either[UserNotFound, NonEmptyVector[read.Todo]]] = IO {
       lastRequestedUserName = Some(userName)
       todos
     }

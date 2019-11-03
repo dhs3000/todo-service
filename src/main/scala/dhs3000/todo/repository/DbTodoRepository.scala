@@ -14,14 +14,22 @@ final class DbTodoRepository[F[_]: Async](xa: Transactor[F]) extends TodoReposit
 
   override def insertTodo(todo: write.Todo): F[Unit] = {
     val insert =
-      sql"insert into todo (username, title, description) values(${todo.username}, ${todo.title}, ${todo.description})".update
+      sql"INSERT INTO todo (username, title, description, completed) VALUES (${todo.username}, ${todo.title}, ${todo.description}, false)".update
     for {
       _ <- insert.run.transact(xa)
     } yield ()
   }
 
+  override def updateCompleted(id: TodoId, completed: Boolean): F[Boolean] = {
+    val update =
+      sql"UPDATE todo SET completed = $completed where id = $id".update
+    for {
+      res <- update.run.transact(xa)
+    } yield res >= 1
+  }
+
   override def findAllByUserName(userName: UserName): F[Vector[read.Todo]] =
-    sql"SELECT id, title, description FROM todo WHERE username=${userName.value}"
+    sql"SELECT id, title, description, completed FROM todo WHERE username=${userName.value} ORDER BY id"
       .query[read.Todo]
       .stream
       .transact(xa)

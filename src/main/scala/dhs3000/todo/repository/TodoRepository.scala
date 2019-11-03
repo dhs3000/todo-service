@@ -6,5 +6,7 @@ import dhs3000.todo.model._
 
 trait TodoRepository[F[_]] {
   def insertTodo(todo: write.Todo): F[Unit]
+  def updateCompleted(id: TodoId, completed: Boolean): F[Boolean]
+
   def findAllByUserName(userName: UserName): F[Vector[read.Todo]]
 }

@@ -1,15 +1,19 @@
 package dhs3000.todo.http
 
 import cats.data.{NonEmptyChain, NonEmptyVector}
-import dhs3000.todo.model.read
-import dhs3000.todo.model.write
-import io.circe.Encoder
+import dhs3000.todo.model.{read, write, TodoId}
+import io.circe.{Encoder, Json}
 import io.circe.refined._
 import io.circe.syntax._
 
 object JsonEncoding {
+
+  implicit val todoIdEncoder: Encoder[TodoId] = Encoder.instance { x =>
+    Json.fromLong(x.value)
+  }
+
   implicit val readTodoEncoder: Encoder[read.Todo] =
-    Encoder.forProduct3("id", "title", "description")(d => (d.id, d.title, d.description))
+    Encoder.forProduct4("id", "title", "description", "completed")(d => (d.id, d.title, d.description, d.completed))
 
   implicit val writeTodoEncoder: Encoder[write.Todo] =
     Encoder.forProduct3("username", "title", "description")(d => (d.username, d.title, d.description))
