@@ -49,8 +49,7 @@ class TodoHttpRoutes[F[_]: Sync](todoService: TodoService[F]) extends Http4sDsl[
       response <- Ok(todo.asJson)
     } yield response
 
-  private val handleError: ServiceError => F[Response[F]] = {
+  private def handleError(error: ServiceError): F[Response[F]] = error match {
     case UserNotFound(u) => NotFound(Seq(s"User not found ${u.value}").asJson)
   }
-
 }
