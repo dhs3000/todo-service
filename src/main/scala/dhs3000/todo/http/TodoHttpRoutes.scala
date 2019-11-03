@@ -3,11 +3,10 @@ package dhs3000.todo.http
 import cats.effect._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
+import dhs3000.todo.http.JsonDecoding._
 import dhs3000.todo.http.JsonEncoding._
 import dhs3000.todo.model._
 import dhs3000.todo.service.TodoService
-import io.circe.Decoder
-import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s._
 import org.http4s.circe._
@@ -15,7 +14,7 @@ import org.http4s.dsl.Http4sDsl
 
 class TodoHttpRoutes[F[_]: Sync](todoService: TodoService[F]) extends Http4sDsl[F] {
 
-  implicit def createUserDecoder[A: Decoder]: EntityDecoder[F, A] = jsonOf[F, A]
+  implicit private val todoEntityDecoder: EntityDecoder[F, write.UnvalidatedTodo] = jsonOf[F, write.UnvalidatedTodo]
 
   val routes: HttpRoutes[F] = HttpRoutes.of[F] {
 
