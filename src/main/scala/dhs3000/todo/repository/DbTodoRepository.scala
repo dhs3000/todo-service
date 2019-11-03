@@ -2,13 +2,12 @@ package dhs3000.todo.repository
 
 import cats.effect.Async
 import cats.implicits._
-import dhs3000.todo.model.{read, write}
-import dhs3000.todo.model._
+import dhs3000.todo.model.{read, write, _}
 import doobie.implicits._
-import doobie.util.{Get, Put, Read}
 import doobie.util.transactor.Transactor
+import doobie.util.{Get, Put}
 
-final class PostgresTodoRepository[F[_]: Async](xa: Transactor[F]) extends TodoRepository[F] {
+final class DbTodoRepository[F[_]: Async](xa: Transactor[F]) extends TodoRepository[F] {
   implicit val titleGet: Get[Title]       = Get[String].tmap(Title.unsafeFrom)
   implicit val titlePut: Put[Title]       = Put[String].tcontramap(_.value)
   implicit val userNamePut: Put[UserName] = Put[String].tcontramap(_.value)

@@ -7,9 +7,9 @@ import doobie.implicits._
 import doobie.util.transactor.Transactor
 import org.scalatest.BeforeAndAfterEach
 
-class PostgresTodoRepositorySpec extends RepositorySpec with BeforeAndAfterEach {
+class DbTodoRepositorySpec extends RepositorySpec with BeforeAndAfterEach {
 
-  describe("The PostgresTodoRepository") {
+  describe("The DbTodoRepository") {
 
     describe("can insert a new todo") {
       import dhs3000.todo.model.write._
@@ -73,7 +73,7 @@ class PostgresTodoRepositorySpec extends RepositorySpec with BeforeAndAfterEach 
     }
   }
 
-  private def repo(implicit xa: Transactor[IO]) = new PostgresTodoRepository[IO](xa)
+  private def repo(implicit xa: Transactor[IO]) = new DbTodoRepository[IO](xa)
 
   override protected def beforeEach(): Unit = {
     super.beforeEach()
