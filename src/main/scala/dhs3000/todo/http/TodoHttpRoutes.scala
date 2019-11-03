@@ -3,7 +3,8 @@ package dhs3000.todo.http
 import cats.effect._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import dhs3000.todo.model.{write, ServiceError, UserName, UserNotFound, Validation}
+import dhs3000.todo.http.JsonEncoding._
+import dhs3000.todo.model._
 import dhs3000.todo.service.TodoService
 import io.circe.Decoder
 import io.circe.generic.auto._

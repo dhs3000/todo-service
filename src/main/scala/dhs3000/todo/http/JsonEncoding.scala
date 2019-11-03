@@ -1,4 +1,4 @@
-package dhs3000.todo
+package dhs3000.todo.http
 
 import cats.data.{NonEmptyChain, NonEmptyVector}
 import dhs3000.todo.model.read
@@ -7,8 +7,7 @@ import io.circe.Encoder
 import io.circe.refined._
 import io.circe.syntax._
 
-package object http {
-
+object JsonEncoding {
   implicit val readTodoEncoder: Encoder[read.Todo] =
     Encoder.forProduct3("id", "title", "description")(d => (d.id, d.title, d.description))
 
@@ -22,5 +21,4 @@ package object http {
   implicit def necEncoder[A](implicit vecEncoder: Encoder[Vector[A]]): Encoder[NonEmptyChain[A]] = Encoder.instance { x =>
     x.toChain.toVector.asJson
   }
-
 }
