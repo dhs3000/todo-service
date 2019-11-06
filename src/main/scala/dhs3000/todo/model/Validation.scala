@@ -3,6 +3,12 @@ package dhs3000.todo.model
 import cats.data.ValidatedNec
 import cats.syntax.apply._
 import cats.syntax.validated._
+import dhs3000.todo.model.Validation.Result
+import dhs3000.todo.model.write.UnvalidatedTodo
+
+trait Validation[Unvalidated, Validated] {
+  def validate(unvalidated: Unvalidated): Result[Validated]
+}
 
 object Validation {
   type Result[A] = ValidatedNec[String, A]
@@ -23,4 +29,8 @@ object Validation {
     (userName, title).mapN(write.Todo(_, _, todo.description))
   }
 
+  implicit val _1: Validation[String, UserName] = validateUsername
+  implicit val _2: Validation[(UnvalidatedTodo, String), write.Todo] = {
+    case (todo, username) => validateNewTodo(username, todo)
+  }
 }
